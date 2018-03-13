@@ -239,6 +239,12 @@ Also, make sure that you have paid attention to the [Proguard settings](#android
 -keep public class com.android.installreferrer.** { *; }
 ```
 
+Google's install referrer API dependency is integrated with Adjust Cordova SDK plugin by default. If you don't wanna use it, then make sure to add the plugin the `no-install-referrer` branch as follows:
+
+```
+cordova plugin add https://github.com/adjust/cordova_sdk.git#no-install-referrer
+```
+
 This feature is supported if you are using the **Adjust SDK v4.12.0 or above**.
 
 #### <a id="android-referrer-gps-intent"></a>Google Play Store intent
