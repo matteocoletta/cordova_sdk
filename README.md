@@ -69,58 +69,6 @@ N.B. At the moment, SDK 4.14.0 for Cordova supports Android platform version `fr
 
 
 
-## Table of contents
-
-* [Example app](#example-app)
-* [Basic integration](#basic-integration)
-   * [Get the SDK](#sdk-get)
-   * [Add the SDK to your project](#sdk-add)
-   * [Integrate the SDK into your app](#sdk-integrate)
-   * [Adjust logging](#adjust-logging)
-   * [Adjust project settings](#adjust-project-settings)
-      * [Android permissions](#android-permissions)
-      * [Google Play Services](#android-gps)
-      * [Proguard settings](#android-proguard)
-      * [Install referrer](#android-referrer)
-         * [Google Play Referrer API](#android-referrer-gpr-api)
-         * [Google Play Store intent](#android-referrer-gps-intent)
-      * [iOS frameworks](#ios-frameworks)
-* [Additional features](#additional-features)
-   * [Event tracking](#event-tracking)
-      * [Revenue tracking](#revenue-tracking)
-      * [Revenue deduplication](#revenue-deduplication)
-      * [In-App Purchase verification](#iap-verification)
-      * [Callback parameters](#callback-parameters)
-      * [Partner parameters](#partner-parameters)
-   * [Session parameters](#session-parameters)
-      * [Session callback parameters](#session-callback-parameters)
-      * [Session partner parameters](#session-partner-parameters)
-      * [Delay start](#delay-start)
-   * [Attribution callback](#attribution-callback)
-   * [Session and event callbacks](#session-event-callbacks)
-   * [Disable tracking](#disable-tracking)
-   * [Offline mode](#offline-mode)
-   * [Event buffering](#event-buffering)
-   * [GDPR right to be forgotten](#gdpr-forget-me)
-
-   * [Background tracking](#background-tracking)
-   * [Device IDs](#device-ids)
-      * [iOS advertising identifier](#di-idfa)
-      * [Google Play Services advertising identifier](#di-gps-adid)
-      * [Amazon advertising identifier](#di-fire-adid)
-      * [Adjust device identifier](#di-adid)
-   * [User attribution](#user-attribution)
-   * [Push token](#push-token)
-   * [Track additional device identifiers](#track-additional-ids)
-   * [Pre-installed trackers](#pre-installed-trackers)
-   * [Deep linking](#deeplinking)
-      * [Standard deep linking scenario](#deeplinking-standard)
-      * [Deep linking on Android & iOS 8 and earlier](#deeplinking-android-ios-old)
-      * [Deep linking on iOS 9 and later](#deeplinking-ios-new)
-      * [Deferred deep linking scenario](#deeplinking-deferred)
-      * [Reattribution via deep links](#deeplinking-reattribution)
-* [License](#license)
-
 ## <a id="early-steps"></a>Quick Start
 
 ### <a id="example-app"></a>Example app
