@@ -349,7 +349,7 @@ After you have enabled universal links handling for your app in your dashboard, 
 
 To complete the integration of `Cordova Universal Links Plugin` after successfully enabling universal links for your app in the Adjust dashboard you must:
 
-### Edit your `config.xml` file
+#### Edit your `config.xml` file
 
 You need to add following entry to your `config.xml` file:
 
@@ -363,7 +363,7 @@ You need to add following entry to your `config.xml` file:
 
 You should replace the `[hash]` value with the value you generated on the Adjust dashboard. You can name the event also how ever you like.
 
-### Check `ul_web_hooks/ios/` content of the plugin
+#### Check `ul_web_hooks/ios/` content of the plugin
 
 Go to the `Cordova Universal Links Plugin` install directory in your app and check the `ul_web_hooks/ios/` folder content. In there, you should see a generated file with the name `[hash].ulink.adjust.com#apple-app-site-association`. The content of that file should look like this:
 
@@ -383,7 +383,7 @@ Go to the `Cordova Universal Links Plugin` install directory in your app and che
 }
 ```
 
-### Integrate plugin to your `index.js` file
+#### Integrate plugin to your `index.js` file
 
 After the `deviceready` event gets fired, you should subscribe to the event you have defined in your `config.xml` file, and define the callback method which gets fired once the event is triggered. Because you don't need this plugin to handle deep linking in Android, you can only need to subscribe to it if your app is running on an iOS device.
 
