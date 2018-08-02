@@ -4,6 +4,71 @@ This is the Cordova SDK of Adjust™. You can read more about Adjust™ at [adju
 
 N.B. At the moment, SDK 4.14.0 for Cordova supports Android platform version `from 4.0.0 until 6.4.0` (more information about newer Android platforms can be found in [here](#cordova-android7.0.0)) and iOS platform version `3.0.0 and higher`. Windows platform is **not supported** at the moment.
 
+### Quick Start
+
+* [Example app](#example-app)
+* [Basic integration](#basic-integration)
+   * [Get the SDK](#sdk-get)
+   * [Add the SDK to your project](#sdk-add)
+   * [Integrate the SDK into your app](#sdk-integrate)
+   * [Adjust logging](#adjust-logging)
+   * [Adjust project settings](#adjust-project-settings)
+      * [Android permissions](#android-permissions)
+      * [Google Play Services](#android-gps)
+      * [Proguard settings](#android-proguard)
+      * [Install referrer](#android-referrer)
+         * [Google Play Referrer API](#android-referrer-gpr-api)
+         * [Google Play Store intent](#android-referrer-gps-intent)
+      * [iOS frameworks](#ios-frameworks)
+   * [SDK signature](#sdk-signature)
+   
+### Deep linking
+
+   * [Deep linking](#deeplinking)
+      * [Standard deep linking scenario](#deeplinking-standard)
+      * [Deep linking on Android & iOS 8 and earlier](#deeplinking-android-ios-old)
+      * [Deep linking on iOS 9 and later](#deeplinking-ios-new)
+      * [Deferred deep linking scenario](#deeplinking-deferred)
+      * [Reattribution via deep links](#deeplinking-reattribution)
+
+### Event Tracking
+   
+   * [Event tracking](#event-tracking)
+      * [Revenue tracking](#revenue-tracking)
+      * [Revenue deduplication](#revenue-deduplication)
+      * [In-App Purchase verification](#iap-verification)
+      
+### Custom Parameters
+
+   * [Event Parameters](#event-parameters)
+     * [Event callback parameters](#callback-parameters)
+     * [Event partner parameters](#partner-parameters)
+   * [Session parameters](#session-parameters)
+      * [Session callback parameters](#session-callback-parameters)
+      * [Session partner parameters](#session-partner-parameters)
+   * [Delay start](#delay-start)
+      
+### Additional Features
+     
+   * [Push token](#push-token)
+   * [Attribution callback](#attribution-callback)
+   * [User attribution](#user-attribution)
+   * [Session and event callbacks](#session-event-callbacks)
+   * [Device IDs](#device-ids)
+      * [iOS advertising identifier](#di-idfa)
+      * [Google Play Services advertising identifier](#di-gps-adid)
+      * [Amazon advertising identifier](#di-fire-adid)
+      * [Adjust device identifier](#di-adid)
+      * [Track additional device identifiers](#track-additional-ids)
+   * [Pre-installed trackers](#pre-installed-trackers)
+   * [Event buffering](#event-buffering)
+   * [Background tracking](#background-tracking)
+   * [Offline mode](#offline-mode)
+   * [Disable tracking](#disable-tracking)
+   * [GDPR right to be forgotten](#gdpr-forget-me)
+
+
+
 ## Table of contents
 
 * [Example app](#example-app)
@@ -37,7 +102,7 @@ N.B. At the moment, SDK 4.14.0 for Cordova supports Android platform version `fr
    * [Offline mode](#offline-mode)
    * [Event buffering](#event-buffering)
    * [GDPR right to be forgotten](#gdpr-forget-me)
-   * [SDK signature](#sdk-signature)
+
    * [Background tracking](#background-tracking)
    * [Device IDs](#device-ids)
       * [iOS advertising identifier](#di-idfa)
@@ -56,8 +121,9 @@ N.B. At the moment, SDK 4.14.0 for Cordova supports Android platform version `fr
       * [Reattribution via deep links](#deeplinking-reattribution)
 * [License](#license)
 
+## <a id="early-steps"></a>Quick Start
 
-## <a id="example-app"></a>Example app
+### <a id="example-app"></a>Example app
 
 There is example inside the [`example` directory][example]. In there you can check how to integrate the Adjust SDK into your app. The example app has been uploaded without platforms being added due to size considerations, so after downloading the app, please run appropriate script from `scripts` folder to build the app for desired platform:
 
@@ -280,342 +346,6 @@ Settings for this can also be found in `plugin.xml` file of the Adjust SDK plugi
 
 If you are not running any iAd campaigns, you can feel free to remove the `iAd.framework` dependency.
 
-## <a id="additional-features"></a>Additional features
-
-You can take advantage of the following features once the Adjust SDK is integrated into your project.
-
-### <a id="event-tracking"></a>Event tracking
-
-You can use Adjust to track all kinds of events. Let's say you want to track every tap on a button. Simply create a new event token in your [dashboard]. Let's say that event token is `abc123`. You can add the following line in your button’s click handler method to track the click:
-
-```js
-var adjustEvent = new AdjustEvent("abc123");
-Adjust.trackEvent(adjustEvent);
-```
-
-### <a id="revenue-tracking"></a>Revenue tracking
-
-If your users can generate revenue by tapping on advertisements or making In-App Purchases, then you can track those revenues with events. Let's say a tap is worth €0.01. You could track the revenue event like this:
-
-```js
-var adjustEvent = new AdjustEvent("abc123");
-
-adjustEvent.setRevenue(0.01, "EUR");
-
-Adjust.trackEvent(adjustEvent);
-```
-
-When you set a currency token, Adjust will automatically convert the incoming revenues into a reporting revenue of your choice. Read more about [currency conversion here][currency-conversion].
-
-
-### <a id="revenue-deduplication"></a>Revenue deduplication
-
-You can also add an optional transaction ID to avoid tracking duplicate revenues. The last ten transaction IDs are remembered, and revenue events with duplicate transaction IDs are skipped. This is especially useful for In-App Purchase tracking. You can see an example below.
-
-If you want to track in-app purchases, please make sure to call the `trackEvent` only if the transaction is finished and an item is purchased. That way you can avoid tracking revenue that is not actually being generated.
-
-```js
-var adjustEvent = new AdjustEvent("abc123");
-
-adjustEvent.setRevenue(0.01, "EUR");
-adjustEvent.setTransactionId("{YourTransactionId}");
-
-Adjust.trackEvent(adjustEvent);
-```
-
-**Note**: Transaction ID is the iOS term, unique identifier for successfully finished Android In-App-Purchases is named **Order ID**.
-
-### <a id="iap-verification"></a>In-App Purchase verification
-
-If you want to verify your In-App Purchases, you can use Adjust's Purchase Verification product, our server side receipt verification tool. Check out our Cordova purchase SDK and read more about it [here][cordova-purchase-sdk].
-
-### <a id="callback-parameters"></a>Callback parameters
-
-You can also register a callback URL for that event in your [dashboard][dashboard] and we will send a GET request to that URL whenever the event gets tracked. In that case you can also put some key-value pairs in an object and pass it to the `trackEvent` method. We will then append these named parameters to your callback URL.
-
-For example, suppose you have registered the URL `http://www.adjust.com/callback` for your event with event token `abc123` and execute the following lines:
-
-```js
-var adjustEvent = new AdjustEvent("abc123");
-
-adjustEvent.addCallbackParameter("key", "value");
-adjustEvent.addCallbackParameter("foo", "bar");
-
-Adjust.trackEvent(adjustEvent);
-```
-
-In that case we would track the event and send a request to:
-
-```
-http://www.adjust.com/callback?key=value&foo=bar
-```
-
-It should be mentioned that we support a variety of placeholders like `{idfa}` for iOS or `{gps_adid}` for Android that can be used as parameter values.  In the resulting callback the `{idfa}` placeholder would be replaced with the ID for Advertisers of the current device for iOS and the `{gps_adid}` would be replaced with the Google Advertising ID of the current device for Android. Also note that we don't store any of your custom parameters, but only append them to your callbacks. If you haven't registered a callback for an event, these parameters won't even be read.
-
-You can read more about using URL callbacks, including a full list of available values, in our [callbacks guide][callbacks-guide].
-
-### <a id="partner-parameters"></a>Partner parameters
-
-Similarly to the callback parameters mentioned above, you can also add parameters that Adjust will transmit to the network partners of your choice. You can activate these networks in your Adjust dashboard.
-
-This works similarly to the callback parameters mentioned above, but can be added by calling the `addPartnerParameter` method on your `AdjustEvent` instance.
-
-```js
-var adjustEvent = new AdjustEvent("abc123");
-
-adjustEvent.addPartnerParameter("key", "value");
-adjustEvent.addPartnerParameter("foo", "bar");
-
-Adjust.trackEvent(adjustEvent);
-```
-
-You can read more about special partners and networks in our [guide to special partners][special-partners].
-
-### <a id="session-parameters"></a>Session parameters
-
-Some parameters are saved to be sent in every event and session of the Adjust SDK. Once you have added any of these parameters, you don't need to add them every time, since they will be saved locally. If you add the same parameter twice, there will be no effect.
-
-These session parameters can be called before the Adjust SDK is launched to make sure they are sent even on install. If you need to send them with an install, but can only obtain the needed values after launch, it's possible to [delay](#delay-start) the first launch of the Adjust SDK to allow this behaviour.
-
-### <a id="session-callback-parameters"></a>Session callback parameters
-
-The same callback parameters that are registered for [events](#callback-parameters) can be also saved to be sent in every event or session of the Adjust SDK.
-
-The session callback parameters have a similar interface of the event callback parameters. Instead of adding the key and its value to an event, it's added through a call to method `addSessionCallbackParameter` of the `Adjust` instance:
-
-```js
-Adjust.addSessionCallbackParameter("foo", "bar");
-```
-
-The session callback parameters will be merged with the callback parameters added to an event. The callback parameters added to an event have precedence over the session callback parameters. Meaning that, when adding a callback parameter to an event with the same key to one added from the session, the value that prevails is the callback parameter added to the event.
-
-It's possible to remove a specific session callback parameter by passing the desiring key to the method `removeSessionCallbackParameter` of the `Adjust` instance:
-
-```js
-Adjust.removeSessionCallbackParameter("foo");
-```
-
-If you wish to remove all key and values from the session callback parameters, you can reset it with the method `resetSessionCallbackParameters` of the `Adjust` instance:
-
-```js
-Adjust.resetSessionCallbackParameters();
-```
-
-### <a id="session-partner-parameters"></a>Session partner parameters
-
-In the same way that there are [session callback parameters](#session-callback-parameters) that are sent for every event or session of the Adjust SDK, there are also session partner parameters.
-
-These will be transmitted to network partners, for the integrations that have been activated in your Adjust [dashboard].
-
-The session partner parameters have a similar interface to the event partner parameters. Instead of adding the key and its value to an event, it's added through a call to method `addSessionPartnerParameter` of the `Adjust` instance:
-
-```js
-Adjust.addSessionPartnerParameter("foo", "bar");
-```
-
-The session partner parameters will be merged with the partner parameters added to an event. The partner parameters added to an event have precedence over the session partner parameters. Meaning that, when adding a partner parameter to an event with the same key to one added from the session, the value that prevails is the partner parameter added to the event.
-
-It's possible to remove a specific session partner parameter by passing the desiring key to the method `removeSessionPartnerParameter` of the `Adjust` instance:
-
-```js
-Adjust.removeSessionPartnerParameter("foo");
-```
-
-If you wish to remove all keys and values from the session partner parameters, you can reset it with the method `resetSessionPartnerParameters` of the `Adjust` instance:
-
-```js
-Adjust.resetSessionPartnerParameters();
-```
-
-### <a id="delay-start"></a>Delay start
-
-Delaying the start of the Adjust SDK allows your app some time to obtain session parameters, such as unique identifiers, to be sent on install.
-
-Set the initial delay time in seconds with the `setDelayStart` field of the `AdjustConfig` instance:
-
-```js
-adjustConfig.setDelayStart(5.5);
-```
-
-In this case this will make the Adjust SDK not send the initial install session and any event created for 5.5 seconds. After this time is expired or if you call `sendFirstPackages()` of the `Adjust` instance in the meanwhile, every session parameter will be added to the delayed install session and events and the Adjust SDK will resume as usual.
-
-**The maximum delay start time of the Adjust SDK is 10 seconds**.
-
-### <a id="attribution-callback"></a>Attribution callback
-
-You can register a listener to be notified of tracker attribution changes. Due to the different sources considered for attribution, this information cannot by provided synchronously. The simplest way is to create a single anonymous listener which is going to be called **each time your user's attribution value changes**:
-
-With the `AdjustConfig` instance, before starting the SDK, add the anonymous listener:
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setAttributionCallbackListener(function(attribution) {
-    // Printing all attribution properties.
-    console.log("Attribution changed!");
-    console.log(attribution.trackerToken);
-    console.log(attribution.trackerName);
-    console.log(attribution.network);
-    console.log(attribution.campaign);
-    console.log(attribution.adgroup);
-    console.log(attribution.creative);
-    console.log(attribution.clickLabel);
-    console.log(attribution.adid);
-});
-
-Adjust.create(adjustConfig);
-```
-
-Within the listener function you have access to the `attribution` parameters. Here is a quick summary of its properties:
-
-- `trackerToken`    the tracker token of the current attribution.
-- `trackerName`     the tracker name of the current attribution.
-- `network`         the network grouping level of the current attribution.
-- `campaign`        the campaign grouping level of the current attribution.
-- `adgroup`         the ad group grouping level of the current attribution.
-- `creative`        the creative grouping level of the current attribution.
-- `clickLabel`      the click label of the current attribution.
-- `adid`            the Adjust device identifier.
-
-Please make sure to consider our [applicable attribution data policies][attribution-data].
-
-### <a id="session-event-callbacks">Session and event callbacks
-
-You can register a callback to be notified of successful and failed tracked events and/or sessions.
-
-Follow the same steps as for attribution callback to implement the following callback function for successfully tracked events:
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setEventTrackingSucceededCallbackListener(function(eventSuccess) {
-    // Printing all event success properties.
-    console.log("Event tracking succeeded!");
-    console.log(eventSuccess.message);
-    console.log(eventSuccess.timestamp);
-    console.log(eventSuccess.eventToken);
-    console.log(eventSuccess.adid);
-    console.log(eventSuccess.jsonResponse);
-});
-
-Adjust.create(adjustConfig);
-```
-
-The following callback function for failed tracked events:
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setEventTrackingFailedCallbackListener(function(eventFailure) {
-    // Printing all event failure properties.
-    console.log("Event tracking failed!");
-    console.log(eventFailure.message);
-    console.log(eventFailure.timestamp);
-    console.log(eventFailure.eventToken);
-    console.log(eventFailure.adid);
-    console.log(eventFailure.willRetry);
-    console.log(eventFailure.jsonResponse);
-});
-
-Adjust.create(adjustConfig);
-```
-
-For successfully tracked sessions:
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setSessionTrackingSucceededCallbackListener(function(sessionSuccess) {
-    // Printing all session success properties.
-    console.log("Session tracking succeeded!");
-    console.log(sessionSuccess.message);
-    console.log(sessionSuccess.timestamp);
-    console.log(sessionSuccess.adid);
-    console.log(sessionSuccess.jsonResponse);
-});
-
-Adjust.create(adjustConfig);
-```
-
-And for failed tracked sessions:
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setSessionTrackingFailedCallbackListener(function(sessionFailure) {
-    // Printing all session failure properties.
-    console.log("Session tracking failed!");
-    console.log(sessionFailure.message);
-    console.log(sessionFailure.timestamp);
-    console.log(sessionFailure.adid);
-    console.log(sessionFailure.willRetry);
-    console.log(sessionFailure.jsonResponse);
-});
-
-Adjust.create(adjustConfig);
-```
-
-The callback functions will be called after the SDK tries to send a package to the server. Within the callback you have access to a response data object specifically for the callback. Here is a quick summary of the session response data properties:
-
-- `var message` the message from the server or the error logged by the SDK.
-- `var timestamp` timestamp from the server.
-- `var adid` a unique device identifier provided by Adjust.
-- `var jsonResponse` the JSON object with the response from the server.
-
-Both event response data objects contain:
-
-- `var eventToken` the event token, if the package tracked was an event.
-
-And both event and session failed objects also contain:
-
-- `var willRetry` indicates there will be an attempt to resend the package at a later time.
-
-### <a id="disable-tracking"></a>Disable tracking
-
-You can disable the Adjust SDK from tracking by invoking the method `setEnabled` of the `Adjust` instance with the enabled parameter as `false`. This setting is **remembered between sessions**, but it can only be activated after the first session.
-
-```js
-Adjust.setEnabled(false);
-```
-
-You can verify if the Adjust SDK is currently active with the method `isEnabled` of the `Adjust` instance. It is always possible to activate the Adjust SDK by invoking `setEnabled` with the parameter set to `true`.
-
-### <a id="offline-mode"></a>Offline mode
-
-You can put the Adjust SDK in offline mode to suspend transmission to our servers while retaining tracked data to be sent later. When in offline mode, all information is saved in a file, so be careful not to trigger too many events while in offline mode.
-
-You can activate offline mode by calling the method `setOfflineMode` of the `Adjust` instance with the parameter `true`.
-
-```js
-Adjust.setOfflineMode(true);
-```
-
-Conversely, you can deactivate offline mode by calling `setOfflineMode` with `false`. When the Adjust SDK is put back in online mode, all saved information is send to our servers with the correct time information.
-
-Unlike disabling tracking, **this setting is not remembered** between sessions. This means that the SDK is in online mode whenever it is started, even if the app was terminated in offline mode.
-
-### <a id="event-buffering"></a>Event buffering
-
-If your app makes heavy use of event tracking, you might want to delay some HTTP requests in order to send them in one batch every minute. You can enable event buffering with your `AdjustConfig` instance by calling `setEventBufferingEnabled` method:
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setEventBufferingEnabled(true);
-
-Adjust.create(adjustConfig);
-```
-
-### <a id="gdpr-forget-me"></a>GDPR right to be forgotten
-
-In accordance with article 17 of the EU's General Data Protection Regulation (GDPR), you can notify Adjust when a user has exercised their right to be forgotten. Calling the following method will instruct the Adjust SDK to communicate the user's choice to be forgotten to the Adjust backend:
-
-```js
-Adjust.gdprForgetMe();
-```
-
-Upon receiving this information, Adjust will erase the user's data and the Adjust SDK will stop tracking the user. No requests from this device will be sent to Adjust in the future.
-
 ### <a id="sdk-signature"></a>SDK signature
 
 An account manager must activate the Adjust SDK signature. Contact Adjust support (support@adjust.com) if you are interested in using this feature.
@@ -632,139 +362,8 @@ adjustConfig.setAppSecret(secretId, info1, info2, info3, info4);
 Adjust.create(adjustConfig);
 ```
 
-### <a id="background-tracking"></a>Background tracking
 
-The default behaviour of the Adjust SDK is to **pause sending HTTP requests while the app is in the background**. You can change this in your `AdjustConfig` instance by calling `setSendInBackground` method:
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setSendInBackground(true);
-
-Adjust.create(adjustConfig);
-```
-
-If nothing is set, sending in background is **disabled by default**.
-
-### <a id="device-ids"></a>Device IDs
-
-Certain services (such as Google Analytics) require you to coordinate Device and Client IDs in order to prevent duplicate reporting.
-
-### <a id="di-idfa">iOS Advertising Identifier
-
-To obtain the IDFA, call the `getIdfa` method of the `Adjust` instance. You need to pass a callback to that method in order to obtain the value:
-
-```js
-Adjust.getIdfa(function(idfa) {
-    // Use idfa value.
-});
-```
-
-
-### <a id="di-gps-adid"></a>Google Play Services advertising identifier
-
-If you need to obtain the Google Advertising ID, you can call the `getGoogleAdId` method of the `Adjust` instance. You need to pass a callback to that method in order to obtain the value:
-
-```js
-Adjust.getGoogleAdId(function(googleAdId) {
-    // Use googleAdId value.
-});
-```
-
-Inside the callback method you will have access to the Google Advertising ID as the variable `googleAdId`.
-
-### <a id="di-fire-adid"></a>Amazon advertising identifier
-
-If you need to obtain the Amazon advertising ID, you can call the `getAmazonAdId` method on `Adjust` instance:
-
-```js
-Adjust.getAmazonAdId(function(amazonAdId) {
-    // Use amazonAdId value.
-});
-```
-
-Inside the callback method you will have access to the Amazon Advertising ID as the variable `amazonAdId`.
-
-### <a id="di-adid"></a>Adjust device identifier
-
-For every device with your app installed on it, the Adjust backend generates a unique **Adjust device identifier** (**adid**). In order to obtain this identifier, call the `getAdid` method of the `Adjust` instance. You need to pass a callback to that method in order to obtain the value:
-
-```js
-Adjust.getAdid(function(adid) {
-    // Use adid value.
-});
-```
-
-**Note**: Information about the **adid** is only available after an app installation has been tracked by the Adjust backend. From that moment on, the Adjust SDK has information about the device **adid** and you can access it with this method. So, **it is not possible** to access the **adid** value before the SDK has been initialised and installation of your app has been successfully tracked.
-
-### <a id="user-attribution"></a>User attribution
-
-As described in the [attribution callback section](#attribution-callback), this callback is triggered, providing you with information about a new attribution whenever it changes. If you want to access information about a user's current attribution whenever you need it, you can make a call to the `getAttribution` method of the `Adjust` instance:
-
-```js
-Adjust.getAttribution(function(attribution) {
-    // Use attribution object in same way like in attribution callback.
-});
-```
-
-**Note**: Information about current attribution is only available after an app installation has been tracked by the Adjust backend and the attribution callback has been triggered. From that moment on, the Adjust SDK has information about a user's attribution and you can access it with this method. So, **it is not possible** to access a user's attribution value before the SDK has been initialised and an attribution callback has been triggered.
-
-### <a id="push-token"></a>Push token
-
-To send us the push notification token, add the following call to Adjust **whenever you get your token in the app or when it gets updated**:
-
-```js
-Adjust.setPushToken("YourPushNotificationsToken");
-```
-
-Push tokens are used for Audience Builder and client callbacks, and they are required for the upcoming uninstall tracking feature.
-
-### <a id="track-additional-ids"></a>Track additional device identifiers
-
-If you are distributing your Android app **outside of the Google Play Store** and would like to track additional device identifiers (IMEI and MEID), you need to explicitly instruct the Adjust SDK to do so. You can do that by calling the `setReadMobileEquipmentIdentity` method of the `AdjustConfig` instance. **The Adjust SDK does not collect these identifiers by default**.
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setReadMobileEquipmentIdentity(true);
-
-Adjust.create(adjustConfig);
-```
-
-You will also need to add the `READ_PHONE_STATE` permission to your `AndroidManifest.xml` file:
-
-```xml
-<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-```
-
-In order to use this feature, additional steps are required within your Adjust Dashboard. For more information, please contact your dedicated account manager or write an email to support@adjust.com.
-
-### <a id="pre-installed-trackers"></a>Pre-installed trackers
-
-If you want to use the Adjust SDK to recognize users that found your app pre-installed on their device, follow these steps.
-
-1. Create a new tracker in your [dashboard].
-2. Open your app delegate and add set the default tracker of your `AdjustConfig` instance:
-
-    ```js
-    var adjustConfig = new AdjustConfig(appToken, environment);
-
-    adjustConfig.setDefaultTracker("{TrackerToken}");
-    
-    Adjust.create(adjustConfig);
-    ```
-
-  Replace `{TrackerToken}` with the tracker token you created in step 2. Please note that the dashboard displays a tracker 
-  URL (including `http://app.adjust.com/`). In your source code, you should specify only the six-character token and not the
-  entire URL.
-
-3. Build and run your app. You should see a line like the following in the app's log output:
-
-    ```
-    Default tracker: 'abc123'
-    ```
-
-### <a id="deeplinking"></a>Deep linking
+## <a id="deeplinking"></a>Deep linking
 
 If you are using the Adjust tracker URL with an option to deep link into your app from the URL, there is the possibility to get info about the deep link URL and its content. Hitting the URL can happen when the user has your app already installed (standard deep linking scenario) or if they don't have the app on their device (deferred deep linking scenario).
 
@@ -971,6 +570,482 @@ var app = {
 [custom-url-scheme-usage]:      https://github.com/EddyVerbruggen/Custom-URL-scheme#3-usage
 [broadcast-receiver-custom]:    https://github.com/adjust/android_sdk/blob/master/doc/english/referrer.md
 [reattribution-with-deeplinks]: https://docs.adjust.com/en/deeplinking/#manually-appending-attribution-data-to-a-deep-link
+
+## <a id="event-tracking"></a>Event tracking
+
+You can use Adjust to track all kinds of events. Let's say you want to track every tap on a button. Simply create a new event token in your [dashboard]. Let's say that event token is `abc123`. You can add the following line in your button’s click handler method to track the click:
+
+```js
+var adjustEvent = new AdjustEvent("abc123");
+Adjust.trackEvent(adjustEvent);
+```
+
+  ### <a id="revenue-tracking"></a>Revenue tracking
+
+If your users can generate revenue by tapping on advertisements or making In-App Purchases, then you can track those revenues with events. Let's say a tap is worth €0.01. You could track the revenue event like this:
+
+```js
+var adjustEvent = new AdjustEvent("abc123");
+
+adjustEvent.setRevenue(0.01, "EUR");
+
+Adjust.trackEvent(adjustEvent);
+```
+
+When you set a currency token, Adjust will automatically convert the incoming revenues into a reporting revenue of your choice. Read more about [currency conversion here][currency-conversion].
+
+  ### <a id="revenue-deduplication"></a>Revenue deduplication
+
+You can also add an optional transaction ID to avoid tracking duplicate revenues. The last ten transaction IDs are remembered, and revenue events with duplicate transaction IDs are skipped. This is especially useful for In-App Purchase tracking. You can see an example below.
+
+If you want to track in-app purchases, please make sure to call the `trackEvent` only if the transaction is finished and an item is purchased. That way you can avoid tracking revenue that is not actually being generated.
+
+```js
+var adjustEvent = new AdjustEvent("abc123");
+
+adjustEvent.setRevenue(0.01, "EUR");
+adjustEvent.setTransactionId("{YourTransactionId}");
+
+Adjust.trackEvent(adjustEvent);
+```
+
+**Note**: Transaction ID is the iOS term, unique identifier for successfully finished Android In-App-Purchases is named **Order ID**.
+
+  ### <a id="iap-verification"></a>In-App Purchase verification
+
+If you want to verify your In-App Purchases, you can use Adjust's Purchase Verification product, our server side receipt verification tool. Check out our Cordova purchase SDK and read more about it [here][cordova-purchase-sdk].
+
+
+## <a id="early-steps"></a>Custom Parameters
+
+### <a id="event-parameters"></a>Event parameters
+
+In addition to the data points that Adjust collects [by default](https://partners.adjust.com/placeholders/), you can use the Adjust SDK to track and add to the events as many custom values as you need (user IDs, product IDs...). Custom parameters are only available as raw data (i.e., they won't appear in the Adjust dashboard).
+
+You should use Callback parameters for the values that you collect for your own internal use, and Partner parameters for those that you wish to share with external partners. If a value (e.g. product ID) is tracked both for internal use and to forward it to external partners, the best practice would be to track it both as callback and partner parameter.
+
+  ### <a id="callback-parameters"></a>Callback parameters
+
+You can register a callback URL for that event in your [dashboard][dashboard] and we will send a GET request to that URL whenever the event gets tracked. In that case you can also put some key-value pairs in an object and pass it to the `trackEvent` method. We will then append these named parameters to your callback URL.
+
+For example, suppose you have registered the URL `http://www.adjust.com/callback` for your event with event token `abc123` and execute the following lines:
+
+```js
+var adjustEvent = new AdjustEvent("abc123");
+
+adjustEvent.addCallbackParameter("key", "value");
+adjustEvent.addCallbackParameter("foo", "bar");
+
+Adjust.trackEvent(adjustEvent);
+```
+
+In that case we would track the event and send a request to:
+
+```
+http://www.adjust.com/callback?key=value&foo=bar
+```
+
+It should be mentioned that we support a variety of placeholders like `{idfa}` for iOS or `{gps_adid}` for Android that can be used as parameter values.  In the resulting callback the `{idfa}` placeholder would be replaced with the ID for Advertisers of the current device for iOS and the `{gps_adid}` would be replaced with the Google Advertising ID of the current device for Android. Also note that we don't store any of your custom parameters, but only append them to your callbacks. If you haven't registered a callback for an event, these parameters won't even be read.
+
+You can read more about using URL callbacks, including a full list of available values, in our [callbacks guide][callbacks-guide].
+
+  ### <a id="partner-parameters"></a>Partner parameters
+
+Similarly to the callback parameters mentioned above, you can also add parameters that Adjust will transmit to the network partners of your choice. You can activate these networks in your Adjust dashboard.
+
+This works similarly to the callback parameters mentioned above, but can be added by calling the `addPartnerParameter` method on your `AdjustEvent` instance.
+
+```js
+var adjustEvent = new AdjustEvent("abc123");
+
+adjustEvent.addPartnerParameter("key", "value");
+adjustEvent.addPartnerParameter("foo", "bar");
+
+Adjust.trackEvent(adjustEvent);
+```
+
+You can read more about special partners and networks in our [guide to special partners][special-partners].
+
+### <a id="session-parameters"></a>Session parameters
+
+Some parameters are saved to be sent in every event and session of the Adjust SDK. Once you have added any of these parameters, you don't need to add them every time, since they will be saved locally. If you add the same parameter twice, there will be no effect.
+
+These session parameters can be called before the Adjust SDK is launched to make sure they are sent even on install. If you need to send them with an install, but can only obtain the needed values after launch, it's possible to [delay](#delay-start) the first launch of the Adjust SDK to allow this behaviour.
+
+  ### <a id="session-callback-parameters"></a>Session callback parameters
+
+The same callback parameters that are registered for [events](#callback-parameters) can be also saved to be sent in every event or session of the Adjust SDK.
+
+The session callback parameters have a similar interface of the event callback parameters. Instead of adding the key and its value to an event, it's added through a call to method `addSessionCallbackParameter` of the `Adjust` instance:
+
+```js
+Adjust.addSessionCallbackParameter("foo", "bar");
+```
+
+The session callback parameters will be merged with the callback parameters added to an event. The callback parameters added to an event have precedence over the session callback parameters. Meaning that, when adding a callback parameter to an event with the same key to one added from the session, the value that prevails is the callback parameter added to the event.
+
+It's possible to remove a specific session callback parameter by passing the desiring key to the method `removeSessionCallbackParameter` of the `Adjust` instance:
+
+```js
+Adjust.removeSessionCallbackParameter("foo");
+```
+
+If you wish to remove all key and values from the session callback parameters, you can reset it with the method `resetSessionCallbackParameters` of the `Adjust` instance:
+
+```js
+Adjust.resetSessionCallbackParameters();
+```
+
+  ### <a id="session-partner-parameters"></a>Session partner parameters
+
+In the same way that there are [session callback parameters](#session-callback-parameters) that are sent for every event or session of the Adjust SDK, there are also session partner parameters.
+
+These will be transmitted to network partners, for the integrations that have been activated in your Adjust [dashboard].
+
+The session partner parameters have a similar interface to the event partner parameters. Instead of adding the key and its value to an event, it's added through a call to method `addSessionPartnerParameter` of the `Adjust` instance:
+
+```js
+Adjust.addSessionPartnerParameter("foo", "bar");
+```
+
+The session partner parameters will be merged with the partner parameters added to an event. The partner parameters added to an event have precedence over the session partner parameters. Meaning that, when adding a partner parameter to an event with the same key to one added from the session, the value that prevails is the partner parameter added to the event.
+
+It's possible to remove a specific session partner parameter by passing the desiring key to the method `removeSessionPartnerParameter` of the `Adjust` instance:
+
+```js
+Adjust.removeSessionPartnerParameter("foo");
+```
+
+If you wish to remove all keys and values from the session partner parameters, you can reset it with the method `resetSessionPartnerParameters` of the `Adjust` instance:
+
+```js
+Adjust.resetSessionPartnerParameters();
+```
+
+### <a id="delay-start"></a>Delay start
+
+Delaying the start of the Adjust SDK allows your app some time to obtain session parameters, such as unique identifiers, to be sent on install.
+
+Set the initial delay time in seconds with the `setDelayStart` field of the `AdjustConfig` instance:
+
+```js
+adjustConfig.setDelayStart(5.5);
+```
+
+In this case this will make the Adjust SDK not send the initial install session and any event created for 5.5 seconds. After this time is expired or if you call `sendFirstPackages()` of the `Adjust` instance in the meanwhile, every session parameter will be added to the delayed install session and events and the Adjust SDK will resume as usual.
+
+**The maximum delay start time of the Adjust SDK is 10 seconds**.
+
+
+## <a id="additional-features"></a>Additional features
+
+You can take advantage of the following features once the Adjust SDK is integrated into your project.
+
+### <a id="push-token"></a>Push token (Mandatory for Uninstall/Reinstall Tracking)
+
+To send us the push notification token, add the following call to Adjust **whenever you get your token in the app or when it gets updated**:
+
+```js
+Adjust.setPushToken("YourPushNotificationsToken");
+```
+
+Push tokens are used for Audience Builder and client callbacks, and they are required for the upcoming uninstall tracking feature.
+
+### <a id="attribution-callback"></a>Attribution callback
+
+You can register a listener to be notified of tracker attribution changes. Due to the different sources considered for attribution, this information cannot by provided synchronously. The simplest way is to create a single anonymous listener which is going to be called **each time your user's attribution value changes**:
+
+With the `AdjustConfig` instance, before starting the SDK, add the anonymous listener:
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setAttributionCallbackListener(function(attribution) {
+    // Printing all attribution properties.
+    console.log("Attribution changed!");
+    console.log(attribution.trackerToken);
+    console.log(attribution.trackerName);
+    console.log(attribution.network);
+    console.log(attribution.campaign);
+    console.log(attribution.adgroup);
+    console.log(attribution.creative);
+    console.log(attribution.clickLabel);
+    console.log(attribution.adid);
+});
+
+Adjust.create(adjustConfig);
+```
+
+Within the listener function you have access to the `attribution` parameters. Here is a quick summary of its properties:
+
+- `trackerToken`    the tracker token of the current attribution.
+- `trackerName`     the tracker name of the current attribution.
+- `network`         the network grouping level of the current attribution.
+- `campaign`        the campaign grouping level of the current attribution.
+- `adgroup`         the ad group grouping level of the current attribution.
+- `creative`        the creative grouping level of the current attribution.
+- `clickLabel`      the click label of the current attribution.
+- `adid`            the Adjust device identifier.
+
+Please make sure to consider our [applicable attribution data policies][attribution-data].
+
+### <a id="user-attribution"></a>User attribution
+
+As described in the [attribution callback section](#attribution-callback), this callback is triggered, providing you with information about a new attribution whenever it changes. If you want to access information about a user's current attribution whenever you need it, you can make a call to the `getAttribution` method of the `Adjust` instance:
+
+```js
+Adjust.getAttribution(function(attribution) {
+    // Use attribution object in same way like in attribution callback.
+});
+```
+
+**Note**: Information about current attribution is only available after an app installation has been tracked by the Adjust backend and the attribution callback has been triggered. From that moment on, the Adjust SDK has information about a user's attribution and you can access it with this method. So, **it is not possible** to access a user's attribution value before the SDK has been initialised and an attribution callback has been triggered.
+
+### <a id="session-event-callbacks"></a>Session and event callbacks
+
+You can register a callback to be notified of successful and failed tracked events and/or sessions.
+
+Follow the same steps as for attribution callback to implement the following callback function for successfully tracked events:
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setEventTrackingSucceededCallbackListener(function(eventSuccess) {
+    // Printing all event success properties.
+    console.log("Event tracking succeeded!");
+    console.log(eventSuccess.message);
+    console.log(eventSuccess.timestamp);
+    console.log(eventSuccess.eventToken);
+    console.log(eventSuccess.adid);
+    console.log(eventSuccess.jsonResponse);
+});
+
+Adjust.create(adjustConfig);
+```
+
+The following callback function for failed tracked events:
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setEventTrackingFailedCallbackListener(function(eventFailure) {
+    // Printing all event failure properties.
+    console.log("Event tracking failed!");
+    console.log(eventFailure.message);
+    console.log(eventFailure.timestamp);
+    console.log(eventFailure.eventToken);
+    console.log(eventFailure.adid);
+    console.log(eventFailure.willRetry);
+    console.log(eventFailure.jsonResponse);
+});
+
+Adjust.create(adjustConfig);
+```
+
+For successfully tracked sessions:
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setSessionTrackingSucceededCallbackListener(function(sessionSuccess) {
+    // Printing all session success properties.
+    console.log("Session tracking succeeded!");
+    console.log(sessionSuccess.message);
+    console.log(sessionSuccess.timestamp);
+    console.log(sessionSuccess.adid);
+    console.log(sessionSuccess.jsonResponse);
+});
+
+Adjust.create(adjustConfig);
+```
+
+And for failed tracked sessions:
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setSessionTrackingFailedCallbackListener(function(sessionFailure) {
+    // Printing all session failure properties.
+    console.log("Session tracking failed!");
+    console.log(sessionFailure.message);
+    console.log(sessionFailure.timestamp);
+    console.log(sessionFailure.adid);
+    console.log(sessionFailure.willRetry);
+    console.log(sessionFailure.jsonResponse);
+});
+
+Adjust.create(adjustConfig);
+```
+
+The callback functions will be called after the SDK tries to send a package to the server. Within the callback you have access to a response data object specifically for the callback. Here is a quick summary of the session response data properties:
+
+- `var message` the message from the server or the error logged by the SDK.
+- `var timestamp` timestamp from the server.
+- `var adid` a unique device identifier provided by Adjust.
+- `var jsonResponse` the JSON object with the response from the server.
+
+Both event response data objects contain:
+
+- `var eventToken` the event token, if the package tracked was an event.
+
+And both event and session failed objects also contain:
+
+- `var willRetry` indicates there will be an attempt to resend the package at a later time.
+
+### <a id="device-ids"></a>Device IDs
+
+Certain services (such as Google Analytics) require you to coordinate Device and Client IDs in order to prevent duplicate reporting.
+
+  ### <a id="di-idfa"></a>iOS Advertising Identifier
+
+To obtain the IDFA, call the `getIdfa` method of the `Adjust` instance. You need to pass a callback to that method in order to obtain the value:
+
+```js
+Adjust.getIdfa(function(idfa) {
+    // Use idfa value.
+});
+```
+
+  ### <a id="di-gps-adid"></a>Google Play Services advertising identifier
+
+If you need to obtain the Google Advertising ID, you can call the `getGoogleAdId` method of the `Adjust` instance. You need to pass a callback to that method in order to obtain the value:
+
+```js
+Adjust.getGoogleAdId(function(googleAdId) {
+    // Use googleAdId value.
+});
+```
+
+Inside the callback method you will have access to the Google Advertising ID as the variable `googleAdId`.
+
+  ### <a id="di-fire-adid"></a>Amazon advertising identifier
+
+If you need to obtain the Amazon advertising ID, you can call the `getAmazonAdId` method on `Adjust` instance:
+
+```js
+Adjust.getAmazonAdId(function(amazonAdId) {
+    // Use amazonAdId value.
+});
+```
+
+Inside the callback method you will have access to the Amazon Advertising ID as the variable `amazonAdId`.
+
+  ### <a id="di-adid"></a>Adjust device identifier
+
+For every device with your app installed on it, the Adjust backend generates a unique **Adjust device identifier** (**adid**). In order to obtain this identifier, call the `getAdid` method of the `Adjust` instance. You need to pass a callback to that method in order to obtain the value:
+
+```js
+Adjust.getAdid(function(adid) {
+    // Use adid value.
+});
+```
+
+**Note**: Information about the **adid** is only available after an app installation has been tracked by the Adjust backend. From that moment on, the Adjust SDK has information about the device **adid** and you can access it with this method. So, **it is not possible** to access the **adid** value before the SDK has been initialised and installation of your app has been successfully tracked.
+
+  ### <a id="track-additional-ids"></a>Track additional device identifiers
+
+If you are distributing your Android app **outside of the Google Play Store** and would like to track additional device identifiers (IMEI and MEID), you need to explicitly instruct the Adjust SDK to do so. You can do that by calling the `setReadMobileEquipmentIdentity` method of the `AdjustConfig` instance. **The Adjust SDK does not collect these identifiers by default**.
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setReadMobileEquipmentIdentity(true);
+
+Adjust.create(adjustConfig);
+```
+
+You will also need to add the `READ_PHONE_STATE` permission to your `AndroidManifest.xml` file:
+
+```xml
+<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+```
+
+In order to use this feature, additional steps are required within your Adjust Dashboard. For more information, please contact your dedicated account manager or write an email to support@adjust.com.
+
+### <a id="pre-installed-trackers"></a>Pre-installed trackers
+
+If you want to use the Adjust SDK to recognize users that found your app pre-installed on their device, follow these steps.
+
+1. Create a new tracker in your [dashboard].
+2. Open your app delegate and add set the default tracker of your `AdjustConfig` instance:
+
+    ```js
+    var adjustConfig = new AdjustConfig(appToken, environment);
+
+    adjustConfig.setDefaultTracker("{TrackerToken}");
+    
+    Adjust.create(adjustConfig);
+    ```
+
+  Replace `{TrackerToken}` with the tracker token you created in step 2. Please note that the dashboard displays a tracker 
+  URL (including `http://app.adjust.com/`). In your source code, you should specify only the six-character token and not the
+  entire URL.
+
+3. Build and run your app. You should see a line like the following in the app's log output:
+
+    ```
+    Default tracker: 'abc123'
+    ```
+
+### <a id="event-buffering"></a>Event buffering
+
+If your app makes heavy use of event tracking, you might want to delay some HTTP requests in order to send them in one batch every minute. You can enable event buffering with your `AdjustConfig` instance by calling `setEventBufferingEnabled` method:
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setEventBufferingEnabled(true);
+
+Adjust.create(adjustConfig);
+```
+
+### <a id="background-tracking"></a>Background tracking
+
+The default behaviour of the Adjust SDK is to **pause sending HTTP requests while the app is in the background**. You can change this in your `AdjustConfig` instance by calling `setSendInBackground` method:
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setSendInBackground(true);
+
+Adjust.create(adjustConfig);
+```
+
+If nothing is set, sending in background is **disabled by default**.
+
+### <a id="offline-mode"></a>Offline mode
+
+You can put the Adjust SDK in offline mode to suspend transmission to our servers while retaining tracked data to be sent later. When in offline mode, all information is saved in a file, so be careful not to trigger too many events while in offline mode.
+
+You can activate offline mode by calling the method `setOfflineMode` of the `Adjust` instance with the parameter `true`.
+
+```js
+Adjust.setOfflineMode(true);
+```
+
+Conversely, you can deactivate offline mode by calling `setOfflineMode` with `false`. When the Adjust SDK is put back in online mode, all saved information is send to our servers with the correct time information.
+
+Unlike disabling tracking, **this setting is not remembered** between sessions. This means that the SDK is in online mode whenever it is started, even if the app was terminated in offline mode.
+
+### <a id="disable-tracking"></a>Disable tracking
+
+You can disable the Adjust SDK from tracking by invoking the method `setEnabled` of the `Adjust` instance with the enabled parameter as `false`. This setting is **remembered between sessions**, but it can only be activated after the first session.
+
+```js
+Adjust.setEnabled(false);
+```
+
+You can verify if the Adjust SDK is currently active with the method `isEnabled` of the `Adjust` instance. It is always possible to activate the Adjust SDK by invoking `setEnabled` with the parameter set to `true`.
+
+### <a id="gdpr-forget-me"></a>GDPR right to be forgotten
+
+In accordance with article 17 of the EU's General Data Protection Regulation (GDPR), you can notify Adjust when a user has exercised their right to be forgotten. Calling the following method will instruct the Adjust SDK to communicate the user's choice to be forgotten to the Adjust backend:
+
+```js
+Adjust.gdprForgetMe();
+```
+
+Upon receiving this information, Adjust will erase the user's data and the Adjust SDK will stop tracking the user. No requests from this device will be sent to Adjust in the future.
 
 ## <a id="license"></a>License
 
