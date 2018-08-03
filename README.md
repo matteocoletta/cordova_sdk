@@ -67,6 +67,9 @@ N.B. At the moment, SDK 4.14.0 for Cordova supports Android platform version `fr
    * [Disable tracking](#disable-tracking)
    * [GDPR right to be forgotten](#gdpr-forget-me)
 
+### License
+
+  * [License](#license)
 
 
 ## <a id="early-steps"></a>Quick Start
