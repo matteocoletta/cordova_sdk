@@ -52,7 +52,7 @@ N.B. At the moment, SDK 4.14.0 for Cordova supports Android platform version `fr
       
 ### Additional Features
      
-   * [Push token](#push-token)
+   * [Push token (Uninstall/Reinstall tracking)](#push-token)
    * [Attribution callback](#attribution-callback)
    * [User attribution](#user-attribution)
    * [Session and event callbacks](#session-event-callbacks)
@@ -693,7 +693,7 @@ In this case this will make the Adjust SDK not send the initial install session 
 
 You can take advantage of the following features once the Adjust SDK is integrated into your project.
 
-### <a id="push-token"></a>Push token (Mandatory for Uninstall/Reinstall Tracking)
+### <a id="push-token"></a>Push token (Uninstall/Reinstall Tracking)
 
 To send us the push notification token, add the following call to Adjust **whenever you get your token in the app or when it gets updated**:
 
@@ -938,6 +938,18 @@ If you want to use the Adjust SDK to recognize users that found your app pre-ins
     ```
     Default tracker: 'abc123'
     ```
+    
+### <a id="background-tracking"></a>Background tracking
+
+The default behaviour of the Adjust SDK is to **pause sending HTTP requests while the app is in the background**. You can change this in your `AdjustConfig` instance by calling `setSendInBackground` method:
+
+```js
+var adjustConfig = new AdjustConfig(appToken, environment);
+
+adjustConfig.setSendInBackground(true);
+
+Adjust.create(adjustConfig);
+```
 
 ### <a id="event-buffering"></a>Event buffering
 
@@ -947,18 +959,6 @@ If your app makes heavy use of event tracking, you might want to delay some HTTP
 var adjustConfig = new AdjustConfig(appToken, environment);
 
 adjustConfig.setEventBufferingEnabled(true);
-
-Adjust.create(adjustConfig);
-```
-
-### <a id="background-tracking"></a>Background tracking
-
-The default behaviour of the Adjust SDK is to **pause sending HTTP requests while the app is in the background**. You can change this in your `AdjustConfig` instance by calling `setSendInBackground` method:
-
-```js
-var adjustConfig = new AdjustConfig(appToken, environment);
-
-adjustConfig.setSendInBackground(true);
 
 Adjust.create(adjustConfig);
 ```
