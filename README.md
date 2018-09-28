@@ -4,6 +4,8 @@ This is the Cordova SDK of Adjust™. You can read more about Adjust™ at [adju
 
 N.B. At the moment, SDK 4.14.0 for Cordova supports Android platform version `from 4.0.0 until 6.4.0` (more information about newer Android platforms can be found in [here](#cordova-android7.0.0)) and iOS platform version `3.0.0 and higher`. Windows platform is **not supported** at the moment.
 
+---
+
 ### Quick Start
 
 * [Example app](#example-app)
@@ -68,6 +70,8 @@ N.B. At the moment, SDK 4.14.0 for Cordova supports Android platform version `fr
    * [GDPR right to be forgotten](#gdpr-forget-me)
 
 ### [License](#license)
+
+---
 
 ## <a id="early-steps"></a>Quick Start
 
